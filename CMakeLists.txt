@@ -13,4 +13,4 @@ set(SOURCE_FILES src/main.cpp)
 add_executable(chip8 ${SOURCE_FILES})
 
 # Link SDL2
-target_link_libraries(Snake SDL2 SDL2main)
+target_link_libraries(chip8 SDL2 SDL2main)
