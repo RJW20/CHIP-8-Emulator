@@ -1,3 +1,9 @@
+# Build folder
+build/
+
+# Third party folder
+third_party/
+
 # Prerequisites
 *.d
 
