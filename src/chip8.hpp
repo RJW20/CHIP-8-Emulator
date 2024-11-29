@@ -2,31 +2,39 @@
 #define CHIP_8_HPP
 
 #include <cstdint>
+#include <string>
+#include <stack>
+#include <SDL2/SDL.h>
 
 class Chip8 {
 public:
-    Chip8();
+    Chip8(const std::string rom_path);
     ~Chip8();
 
     void run();
 
 private:
-    uint16_t pc;            // Program counter
-    uint16_t I;             // Index register
+    std::string rom_path;       // ROM location
 
-    uint8_t memory[4096];   // Memory
-    uint8_t V[16];          // Variable registers
+    SDL_Window* window;         // SDL window
+    uint8_t display[64*32];     // Display buffer
+    uint8_t keys[16];           // Keypad
 
-    uint16_t stack[16];     // Stack
-    uint8_t sp;             // Stack pointer
+    uint8_t memory[4096];       // Memory
+    uint16_t pc;                // Program counter
+    uint16_t I;                 // Index register
+    std::stack<uint8_t> stack;  // Call stack
+    uint8_t V[16];              // Variable registers
 
-    uint8_t delay;          // Delay timer
-    uint8_t sound;          // Sound timer
+    uint8_t delay;              // Delay timer
+    uint8_t sound;              // Sound timer
 
-    void handle_events();
-    void update();
-    void render();
+    void hard_reset();
+    void soft_reset();
 
+    //void handle_events();
+    //void update();
+    //void render();
 };
 
 #endif
