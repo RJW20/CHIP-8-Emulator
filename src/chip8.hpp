@@ -29,10 +29,12 @@ private:
     uint8_t delay;              // Delay timer
     uint8_t sound;              // Sound timer
 
+    bool draw_flag;
+
     void hard_reset();
     void soft_reset();
 
-    //void handle_events();
+    bool handle_events();
     //void update();
     //void render();
 };
