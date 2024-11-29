@@ -1,7 +1,7 @@
 #include <iostream>
 #include "chip8.hpp"
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
 
     // Check for rom provided
     if (argc != 2) {
@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    Chip8 chip8 = Chip8(argv[1]);
+    Chip8 chip8(argv[1]);
     chip8.run();
 
     return 0;
