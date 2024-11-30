@@ -318,8 +318,8 @@ void Chip8::advance() {
     uint16_t opcode = memory[pc] << 8 | memory[pc + 1];
     pc += 2;
 
-    uint16_t X = opcode & 0xF00 >> 8;
-    uint16_t Y = opcode & 0xF0 >> 4;
+    uint16_t X = (opcode & 0xF00) >> 8;
+    uint16_t Y = (opcode & 0xF0) >> 4;
     uint16_t N = opcode & 0xF;
     uint16_t NN = opcode & 0xFF;
     uint16_t NNN = opcode & 0xFFF;
