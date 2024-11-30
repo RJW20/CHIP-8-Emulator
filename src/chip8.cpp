@@ -332,13 +332,19 @@ void Chip8::advance() {
                 
                 // 00E0 - clear screen
                 case 0x0000:
-
                     for (int i = 0; i < 32; ++i) {
                         for (int j = 0; j < 64; ++j) {
                             display[i][j] = 0;
                         }
                     }
                     break;
+
+                // 00EE - return from subroutine
+                case 0x000E:
+                    if (!stack.empty()) {
+                        pc = stack.top();
+                        stack.pop();
+                    }
 
             }
             break;
@@ -348,16 +354,31 @@ void Chip8::advance() {
             pc = NNN;
             break;
 
+        // 2NNN - call subroutine at NNN
         case 0x2000:
+            stack.push(pc);
+            pc = NNN;
             break;
 
+        // 3XNN - skip pc if VX = NN
         case 0x3000:
+            if (V[X] == NN) {
+                pc += 2;
+            }
             break;
 
+        // 4XNN - skip pc if VX != NN
         case 0x4000:
+            if (V[X] != NN) {
+                pc += 2;
+            }
             break;
 
+        // 5XY0 - skip pc if VX == VY
         case 0x5000:
+            if (V[X] == V[Y]) {
+                pc += 2;
+            }
             break;
 
         // 6XNN - set VX to NN
@@ -373,7 +394,11 @@ void Chip8::advance() {
         case 0x8000:
             break;
 
+        // 9XY0 - skip pc if VX != VY
         case 0x9000:
+            if (V[X] != V[Y]) {
+                pc += 2;
+            }
             break;
 
         // ANNN - set I to NNN
