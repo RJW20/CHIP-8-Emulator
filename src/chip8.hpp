@@ -29,12 +29,14 @@ private:
     uint8_t delay;              // Delay timer
     uint8_t sound;              // Sound timer
 
+    const int APF = 11;         // Advances per frame
+
     void hard_reset();
     void soft_reset();
 
     bool handle_events();
     void advance();
-    //void render();
+    void render();
 };
 
 #endif

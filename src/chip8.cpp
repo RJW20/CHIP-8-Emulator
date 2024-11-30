@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <chrono>
+#include <thread>
 #include "chip8.hpp"
 
 // Font
@@ -115,12 +116,29 @@ void Chip8::soft_reset() {
 
 // Main game loop
 void Chip8::run() {
+
+    using namespace std;
+    using namespace std::chrono;
+
+    using time_between_frames = duration<int64_t, ratio<1, 60>>;    // 60 Hz
+    auto next_frame = system_clock::now() + time_between_frames{0};
+    auto last_frame = next_frame - time_between_frames{1};
     
     while(true) {
 
-        if (!handle_events()) {
-            break;
+        for (int i = 0; i < APF; ++i) {
+
+            if (!handle_events()) {
+                return;
+            }
+            advance();
         }
+
+        render();
+
+        this_thread::sleep_until(next_frame);
+        last_frame = next_frame;
+        next_frame = next_frame + time_between_frames{1};
 
     }
 }
@@ -326,7 +344,7 @@ void Chip8::advance() {
 
         // DXYN - draw sprite at the memory address in I that is (8, N) pixels
         // wide/tall to (VX, VY).
-        case 0xD000:
+        case 0xD000: {
 
             uint8_t x = V[X] & 0x3F;
             uint8_t y = V[Y] & 0x1F;
@@ -357,6 +375,7 @@ void Chip8::advance() {
                     }
                 }
             }
+        }
             break;
 
         case 0xE000:
@@ -366,5 +385,12 @@ void Chip8::advance() {
             break;
 
     }
+
+}
+
+// Draw the display to the window
+void Chip8::render() {
+
+    std::cout << "Frame drawn" << std::endl;
 
 }
