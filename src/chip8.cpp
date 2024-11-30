@@ -115,8 +115,6 @@ void Chip8::soft_reset() {
 
 // Main game loop
 void Chip8::run() {
-
-    std::cout << keys[0] << std::endl;
     
     while(true) {
 
@@ -253,4 +251,120 @@ bool Chip8::handle_events() {
     }
 
     return true;
+}
+
+// Emulate one fetch/decode/execute loop
+void Chip8::advance() {
+
+    uint16_t opcode = memory[pc] << 8 | memory[pc + 1];
+    pc += 2;
+
+    uint16_t X = opcode & 0xF00 >> 8;
+    uint16_t Y = opcode & 0xF0 >> 4;
+    uint16_t N = opcode & 0xF;
+    uint16_t NN = opcode & 0xFF;
+    uint16_t NNN = opcode & 0xFFF;
+    switch(opcode & 0xF000) {
+
+        // 00EN
+        case 0x0000:
+
+            switch(N) {
+                
+                // 00E0 - clear screen
+                case 0x0000:
+                    for (int i = 0; i < 64 * 32; ++i) {
+                        display[i] = 0;
+                    }
+            }
+
+            break;
+
+        // 1NNN - jump to NNN
+        case 0x1000:
+            pc = NNN;
+            break;
+
+        case 0x2000:
+            break;
+
+        case 0x3000:
+            break;
+
+        case 0x4000:
+            break;
+
+        case 0x5000:
+            break;
+
+        // 6XNN - set VX to NN
+        case 0x6000:
+            V[X] = NN;
+            break;
+
+        // 7XNN - add NN to VX
+        case 0x7000:
+            V[X] += NN;
+            break;
+
+        case 0x8000:
+            break;
+
+        case 0x9000:
+            break;
+
+        // ANNN - set I to NNN
+        case 0xA000:
+            I = NNN;
+            break;
+
+        case 0xB000:
+            break;
+
+        case 0xC000:
+            break;
+
+        // DXYN - draw sprite at the memory address in I that is (8, N) pixels
+        // wide/tall to (VX, VY).
+        case 0xD000:
+
+            uint8_t x = V[X] & 0x3F;
+            uint8_t y = V[Y] & 0x1F;
+            
+            V[0xF] = 0;
+            uint8_t pixels;
+            for (int row = 0; row < N; ++row) {
+
+                if (y + row > 31) {
+                    break;
+                }
+
+                pixels = memory[I + row];
+                for (int col = 0; col < 8; ++col) {
+
+                    if (x + col > 63) {
+                        break;
+                    }
+
+                    if ((pixels >> (7 - col)) & 1 == 1) {
+
+                        if (display[64 * (y + row) + x + col]) {
+                            V[0xF] = 1;
+                        }
+
+                        display[64 * (y + row) + x + col] ^= 1;
+
+                    }
+                }
+            }
+            break;
+
+        case 0xE000:
+            break;
+
+        case 0xF000:
+            break;
+
+    }
+
 }
