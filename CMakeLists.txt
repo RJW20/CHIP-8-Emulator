@@ -9,8 +9,8 @@ include_directories(third_party/SDL2/include)
 link_directories(third_party/SDL2/lib)
 
 # Add source files
-set(SOURCE_FILES src/main.cpp)
+set(SOURCE_FILES src/main.cpp src/chip8.cpp)
 add_executable(chip8 ${SOURCE_FILES})
 
 # Link SDL2
-target_link_libraries(chip8 SDL2 SDL2main)
+target_link_libraries(chip8 mingw32 SDL2main SDL2)
