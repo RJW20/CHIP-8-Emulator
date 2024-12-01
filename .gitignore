@@ -4,6 +4,9 @@ build/
 # Third party folder
 third_party/
 
+# Roms folder
+roms/
+
 # Prerequisites
 *.d
 
