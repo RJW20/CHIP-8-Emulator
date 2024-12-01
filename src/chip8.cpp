@@ -327,7 +327,6 @@ void Chip8::advance() {
 
         // 00EN
         case 0x0000:
-
             switch(N) {
                 
                 // 00E0 - clear screen
@@ -345,7 +344,7 @@ void Chip8::advance() {
                         pc = stack.top();
                         stack.pop();
                     }
-
+                    break;
             }
             break;
 
@@ -391,7 +390,75 @@ void Chip8::advance() {
             V[X] += NN;
             break;
 
+        // 8XYN
         case 0x8000:
+            switch(N) {
+                
+                // 8XY0 - set VX to VY
+                case 0x0000:
+                    V[X] = V[Y];
+                    break;
+
+                // 8XY1 - set VX to VX | VY
+                case 0x0001:
+                    V[X] |= V[Y];
+                    break;
+
+                // 8XY2 - set VX to VX & VY
+                case 0x0002:
+                    V[X] &= V[Y];
+                    break;
+
+                // 8XY3 - set VX to VX ^ VY
+                case 0x0003:
+                    V[X] ^= V[Y];
+                    break;
+
+                // 8XY4 - set VX to VX + VY and update VF
+                case 0x0004:
+                    if (V[X] + V[Y] > 0xFF) {
+                        V[0xF] = 1;
+                    }
+                    else {
+                        V[0xF] = 0;
+                    }
+                    V[X] += V[Y];
+                    break;
+
+                // 8XY5 - set VX to VX - VY and update VF
+                case 0x0005:
+                    if (V[X] > V[Y]) {
+                        V[0xF] = 1;
+                    }
+                    else {
+                        V[0xF] = 0;
+                    }
+                    V[X] -= V[Y];
+                    break;
+
+                // 8XY6 - shift VX one bit to the right and update VF
+                case 0x0006:
+                    V[0xF] = V[X] & 0x1;
+                    V[X] >>= 1;
+                    break;
+
+                // 8XY7 - set VX to VY - VX and update VF
+                case 0x0007:
+                    if (V[Y] > V[X]) {
+                        V[0xF] = 1;
+                    }
+                    else {
+                        V[0xF] = 0;
+                    }
+                    V[X] = V[Y] - V[X];
+                    break;
+
+                // 8XYE - shift VX one bit to the left and update VF
+                case 0x000E:
+                    V[0xF] = V[X] >> 7;
+                    V[X] <<= 1;
+                    break;
+            }
             break;
 
         // 9XY0 - skip pc if VX != VY
@@ -406,10 +473,14 @@ void Chip8::advance() {
             I = NNN;
             break;
 
+        // BNNN - jump to NNN + V0
         case 0xB000:
+            pc = NNN + V[0];
             break;
 
+        // CXNN - set VX to a random number & NN
         case 0xC000:
+            V[X] = (std::rand() & 0xFF) & NN;
             break;
 
         // DXYN - draw sprite at the memory address in I that is (8, N) pixels
@@ -448,14 +519,102 @@ void Chip8::advance() {
         }
             break;
 
+        // EXNN
         case 0xE000:
+            switch(NN) {
+
+                // EX9E - skip pc if key VX is held down
+                case 0x009E:
+                    if (keys[V[X]]) {
+                        pc += 2;
+                    }
+                    break;
+
+                // EX9E - skip pc if key VX is not held down
+                case 0x00A1:
+                    if (!keys[V[X]]) {
+                        pc += 2;
+                    }
+                    break;
+            }
             break;
 
+        // FXNN
         case 0xF000:
+            switch(NN) {
+
+                // FX07 - set VX to delay timer
+                case 0x0007:
+                    V[X] = delay;
+                    break;
+
+                // FX0A - wait for key input
+                case 0x000A:
+                    for (int i = 0; i < 16; ++i) {
+                        if (keys[i]) {
+                            V[X] = i;
+                            return;
+                        }
+                    }
+                    pc -= 2;
+                    break;
+
+                // FX15 - set delay timer to VX
+                case 0x0015:
+                    delay = V[X];
+                    break;
+
+                // FX18 - set sound timer to VX
+                case 0x0018:
+                    sound = V[X];
+                    break;
+
+                // FX1E - add VX to I and set VF to 1 if the result > 0xFFF
+                case 0x001E:
+                    if (I + V[X] > 0xFFF) {
+                        V[0xF] = 1;
+                    }
+                    else {
+                        V[0xF] = 0;
+                    }
+                    I += V[X];
+                    break;
+
+                // FX29 - set I to sprite location for character VX, which are
+                // 5 bytes long
+                case 0x0029:
+                    I = V[X] * 5;
+                    break;
+
+                // FX33 - convert VX to decimal and store it at
+                // memory[I,I+1,I+2]
+                case 0x0033:
+                    memory[I] = V[X] / 100;
+                    memory[I+1] = (V[X] % 100) / 10;
+                    memory[I+2] = V[X] % 10;
+                    break; 
+
+                // FX55 - store V0 through VX to memory[I,...,I+X]
+                case 0x0055:
+                    for (int i = 0; i < X + 1; ++i) {
+                        memory[I + i] = V[i];
+                    }
+                    break;
+
+                // FX65 - set V0 through VX to what is in memory[I,...,I+X]
+                case 0x0065:
+                    for (int i = 0; i < X + 1; ++i) {
+                        V[i] = memory[I + i];
+                    }
+                    break;
+            }
             break;
 
+        default:
+            std::cerr << "Unimplemented opcode: " << std::hex << opcode <<
+                std::endl;
+            exit(7);
     }
-
 }
 
 // Draw the display to the window
