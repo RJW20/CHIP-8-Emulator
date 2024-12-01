@@ -415,48 +415,47 @@ void Chip8::advance() {
                     break;
 
                 // 8XY4 - set VX to VX + VY and update VF
-                case 0x0004:
-                    if (V[X] + V[Y] > 0xFF) {
-                        V[0xF] = 1;
-                    }
-                    else {
-                        V[0xF] = 0;
-                    }
+                // Need to use VX, VY first in case one is VF before setting it
+                case 0x0004: {
+                    bool overflow = (V[X] + V[Y] > 0xFF);
                     V[X] += V[Y];
+                    V[0xF] = overflow;
+                }
                     break;
 
                 // 8XY5 - set VX to VX - VY and update VF
-                case 0x0005:
-                    if (V[X] > V[Y]) {
-                        V[0xF] = 1;
-                    }
-                    else {
-                        V[0xF] = 0;
-                    }
+                // Need to use VX, VY first in case one is VF before setting it
+                case 0x0005: {
+                    bool underflow = (V[X] - V[Y] < 0);
                     V[X] -= V[Y];
+                    V[0xF] = !underflow;
+                }
                     break;
 
                 // 8XY6 - shift VX one bit to the right and update VF
-                case 0x0006:
-                    V[0xF] = V[X] & 0x1;
+                // Need to use VX first in case it is VF
+                case 0x0006: {
+                    bool shifted = V[X] & 0x1;
                     V[X] >>= 1;
+                    V[0xF] = shifted;
+                }
                     break;
 
                 // 8XY7 - set VX to VY - VX and update VF
-                case 0x0007:
-                    if (V[Y] > V[X]) {
-                        V[0xF] = 1;
-                    }
-                    else {
-                        V[0xF] = 0;
-                    }
+                // Need to use VX, VY first in case one is VF before setting it
+                case 0x0007: {
+                    bool underflow = (V[Y] - V[X] < 0);
                     V[X] = V[Y] - V[X];
+                    V[0xF] = !underflow;
+                }
                     break;
 
                 // 8XYE - shift VX one bit to the left and update VF
-                case 0x000E:
-                    V[0xF] = V[X] >> 7;
+                case 0x000E: {
+                    bool shifted = V[X] >> 7;
                     V[X] <<= 1;
+                    V[0xF] = shifted;
+                }
                     break;
             }
             break;
@@ -570,14 +569,11 @@ void Chip8::advance() {
                     break;
 
                 // FX1E - add VX to I and set VF to 1 if the result > 0xFFF
-                case 0x001E:
-                    if (I + V[X] > 0xFFF) {
-                        V[0xF] = 1;
-                    }
-                    else {
-                        V[0xF] = 0;
-                    }
+                case 0x001E: {
+                    bool overflow = (I + V[X] > 0xFFF);
                     I += V[X];
+                    V[0xF] = overflow;
+                }
                     break;
 
                 // FX29 - set I to sprite location for character VX, which are

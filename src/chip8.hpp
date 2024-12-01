@@ -29,7 +29,7 @@ private:
     uint8_t memory[4096];           // Memory
     uint16_t pc;                    // Program counter
     uint16_t I;                     // Index register
-    std::stack<uint8_t> stack;      // Call stack
+    std::stack<uint16_t> stack;      // Call stack
     uint8_t V[16];                  // Variable registers
 
     uint8_t delay;                  // Delay timer
